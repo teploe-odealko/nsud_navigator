@@ -2,7 +2,7 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 
-with open('schema_health.json') as json_file:
+with open('goverment.json') as json_file:
     goverment = json.load(json_file)
 
 headers = {

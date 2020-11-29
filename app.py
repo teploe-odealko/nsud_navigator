@@ -1,13 +1,7 @@
 import dash_bootstrap_components as dbc
 import flask
-from flask import request, send_file, jsonify
 import dash
-from flask import send_file
-from sqlalchemy import create_engine, ForeignKey
-from flask_sqlalchemy import SQLAlchemy
-import cv2
-import os
-import numpy as np
+
 
 
 server = flask.Flask(__name__)
