@@ -13,6 +13,7 @@ p {
 }
 
 .btn-light{
+    width: 100%;
     text-align: left;
     background: white !important;
     border: 0px !important

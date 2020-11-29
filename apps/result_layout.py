@@ -64,25 +64,41 @@ def make_item(i):
 
 def make_list_item(struct):
     # we use this function to make the example items to avoid code duplication
+    data_schema = struct['data_scheme']
+    data_schema = [word+'\n' for word in data_schema]
+    print(data_schema)
+    print(type(data_schema))
     return dbc.Card(
         [
             dbc.CardBody(
-                html.H2(
-                    html.A(
-                        dbc.Button(
-                            [
-                                dbc.Row(struct['title']),
-                                dbc.Row([
-                                    dbc.Col([html.P("Источник", style={"font-weight": '600'}), html.H6("data.gov.ru")], width=4),
-                                    dbc.Col([html.P("Создатель", style={"font-weight": '600'}), html.H6(struct['creator'])], width=8),
+                html.H2([
+                    dbc.Row([
+                        dbc.Col(
+                            html.A(
+                                dbc.Button(
+                                    [
+                                        dbc.Row(struct['title']),
+                                        dbc.Row([
+                                            dbc.Col([html.P("Источник", style={"font-weight": '600'}), html.H6("data.gov.ru")], width=3),
+                                            dbc.Col([html.P("Создатель", style={"font-weight": '600'}), html.H6(struct['creator'])], width=4),
+                                            dbc.Col([html.P("Структура", style={"font-weight": '600'}), html.H6(data_schema)], width=5),
 
-                                ])
-                            ],
-                            color="light",
-                            id=struct['identifier'],
-                        ), href='https://data.gov.ru/opendata/'+struct['identifier']
-                    )
-                )
+                                        ], style={"margin-top": "1rem"})
+                                    ],
+                                    color="light",
+                                    id=struct['identifier'],
+                                ), href='https://data.gov.ru/opendata/'+struct['identifier']
+                            ), width=10
+                        ),
+                        dbc.Col(dbc.Button("Подробнее", outline=True, color="primary", id="more_btn"+struct['identifier'],
+                                           style={'width': '100%', 'height' : '100%'}))
+                    ]),
+                    dbc.Collapse(
+                        dbc.Card(dbc.CardBody("This content is hidden in the collapse")),
+                        id="collapse_"+struct['identifier'],
+                    ),
+
+                ])
             ),
         ],
         style={'width' : '100%'}
@@ -278,36 +294,20 @@ def toggle_accordion(n1, n2, n3, is_open1, is_open2, is_open3):
     return False, False, False
 
 
-# @app.callback(
-#     Output('net', 'data'),
-#     [Input("btn_search1", "n_clicks")],
-#      State("input_search1", "value")   )
-# def myfun(n1, value):
-#     departments_set = list(set([goverment[key]['creator'] for key in goverment]))
-#
-#     departments_set_short = []
-#     for i, dep in enumerate(departments_set):
-#         tmp_list = [word[0:6] for word in departments_set[i].split()]
-#         tmp_list.insert(int(len(tmp_list)/3), '\n')
-#         tmp_list.insert(2*int(len(tmp_list)/3), '\n')
-#         departments_set_short.append(' '.join(tmp_list))
-#
-#     l1 = list(range(len(departments_set)))
-#     l2 = l1.copy()
-#     l2.insert(0,l2.pop())
-#
-#     for dep in departments_set:
-#         # print(dep)
-#         print(goverment_df[goverment_df['creator'] == dep]['title'].values)
-#     data ={'nodes':[{'id': i, 'label':item} for i, item in enumerate(departments_set_short)],
-#            'edges':[{'id':f"{i}-{j}", 'from': i, 'to': j} for i, j in zip(l1,l2)]
-#            }
-#     return data
-
 @app.callback(
     Output("collapse_list", "is_open"),
     [Input("collapse_list_btn", "n_clicks")],
     [State("collapse_list", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+@app.callback(
+    Output("collapse_more_info", "is_open"),
+    [Input("collapse_more", "n_clicks")],
+    [State("collapse_more_info", "is_open")],
 )
 def toggle_collapse(n, is_open):
     if n:
@@ -363,13 +363,6 @@ def search(btn, value):
         tmp_list.insert(2*int(len(tmp_list)/3), '\n')
         departments_set_short.append(' '.join(tmp_list))
 
-    # l1 = list(range(len(departments_set)))
-    # l2 = l1.copy()
-    # l2.insert(0,l2.pop())
-
-    # for dep in departments_set:
-        # print(dep)
-        # print(goverment_df[goverment_df['creator'] == dep]['title'].values)
     data ={'nodes': [{'id': 0, 'label': value}] + [{'id': i+1, 'label':item} for i, item in enumerate(departments_set_short)],
            'edges':[{'id':f"{0}-{j}", 'from': 0, 'to': j} for j in range(1, len(departments_set_short)+1)]
            }
@@ -381,4 +374,5 @@ def search(btn, value):
            len(set([hit['_source']['subject'] for hit in hits])),\
             len(set([hit['_source']['creator'] for hit in hits])), \
            data
+
 

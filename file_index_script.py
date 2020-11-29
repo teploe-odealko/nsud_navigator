@@ -1,32 +1,22 @@
 import json
 import requests
-# import http.client
+from requests.auth import HTTPBasicAuth
 
 with open('schema_health.json') as json_file:
-    # contents = json_file.read()
-    # goverment = ast.literal_eval(contents)
     goverment = json.load(json_file)
 
 headers = {
-  'Content-Type': 'application/json; charset=utf-8',
-
+  'Content-Type': 'application/json;',
+    'Authorization': 'ApiKey M2N0ZUVuWUJ2c1hhU3JQWjZXRnA6cFFUUjZGcUNRQ2liYzRFWnp3S0RUdw==',
 }
-url = 'http://localhost:9200/test_index/_doc/'
+
+
+url = 'https://63b59e3d9c4a4128ade4896a2e5f9811.us-central1.gcp.cloud.es.io:9243/test_index/_doc/'
 # conn = http.client.HTTPSConnection("localhost", 9200)
 for key in goverment:
-    # print(goverment[key])
     req_url = goverment[key]['identifier']
-
-    # print(req_url)
-    # conn.request("PUT", "/test_index/_doc/" + req_url, str(goverment[key]).encode('utf-8'), headers)
-    # res = conn.getresponse()
-    # data = res.read()
-    # print(data.decode("utf-8"))
-    # str_put = str_put.replace('"', '$')
-    # str_put = str_put.replace("'", '"')
-    # str_put = str_put.replace("$", "'")
-    # print(str_put)
-    r = requests.put(url+req_url, data=(json.dumps(goverment[key])).encode('utf-8'), headers=headers)
+    print(json.dumps(goverment[key]))
+    r = requests.put(url+req_url, data=(json.dumps(goverment[key])).encode('utf-8'), headers=headers, auth=HTTPBasicAuth('elastic', 'jUU9t4jN7I8HbGIa7wudWB7F'))
     print(r.content)
     # break
 
