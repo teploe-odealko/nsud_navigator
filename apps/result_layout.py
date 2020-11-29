@@ -329,7 +329,7 @@ def search(btn, value):
       'Content-Type': 'application/json',
 
     }
-    uri = 'http://localhost:9200/test_index/_search'
+    uri = 'http://63b59e3d9c4a4128ade4896a2e5f9811.us-central1.gcp.cloud.es.io:9243/test_index/_search'
     query = json.dumps({
        "query": {
         "multi_match": {
