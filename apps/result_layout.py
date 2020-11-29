@@ -1,5 +1,5 @@
 import json
-
+from requests.auth import HTTPBasicAuth
 import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -66,8 +66,7 @@ def make_list_item(struct):
     # we use this function to make the example items to avoid code duplication
     data_schema = struct['data_scheme']
     data_schema = [word+'\n' for word in data_schema]
-    print(data_schema)
-    print(type(data_schema))
+
     return dbc.Card(
         [
             dbc.CardBody(
@@ -326,10 +325,10 @@ def toggle_collapse(n, is_open):
 )
 def search(btn, value):
     headers = {
-      'Content-Type': 'application/json',
-
-    }
-    uri = 'http://63b59e3d9c4a4128ade4896a2e5f9811.us-central1.gcp.cloud.es.io:9243/test_index/_search'
+  'Content-Type': 'application/json;',
+    'Authorization': 'ApiKey M2N0ZUVuWUJ2c1hhU3JQWjZXRnA6cFFUUjZGcUNRQ2liYzRFWnp3S0RUdw==',
+}
+    uri = 'https://63b59e3d9c4a4128ade4896a2e5f9811.us-central1.gcp.cloud.es.io:9243/test_index/_search'
     query = json.dumps({
        "query": {
         "multi_match": {
@@ -344,7 +343,8 @@ def search(btn, value):
         }
       }
     })
-    response = requests.get(uri, data=query, headers=headers)
+    response = requests.get(uri, data=query, headers=headers, auth=HTTPBasicAuth('elastic', 'jUU9t4jN7I8HbGIa7wudWB7F'))
+    print(response.text)
     try:
         hits = json.loads(response.text)['hits']['hits']
     except:
