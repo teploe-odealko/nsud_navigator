@@ -62,7 +62,7 @@ def make_item(i):
         ]
     )
 
-def make_list_item(link, title):
+def make_list_item(struct):
     # we use this function to make the example items to avoid code duplication
     return dbc.Card(
         [
@@ -70,10 +70,17 @@ def make_list_item(link, title):
                 html.H2(
                     html.A(
                         dbc.Button(
-                            title,
+                            [
+                                dbc.Row(struct['title']),
+                                dbc.Row([
+                                    dbc.Col([html.P("Источник", style={"font-weight": '600'}), html.H6("data.gov.ru")], width=4),
+                                    dbc.Col([html.P("Создатель", style={"font-weight": '600'}), html.H6(struct['creator'])], width=8),
+
+                                ])
+                            ],
                             color="light",
-                            id=link,
-                        ), href=link
+                            id=struct['identifier'],
+                        ), href='https://data.gov.ru/opendata/'+struct['identifier']
                     )
                 )
             ),
@@ -142,7 +149,7 @@ result_content = html.Div(
                                     [
                                         dbc.Row([
                                             dbc.Col(html.H6("Количество наборов", className="card-title"), width=9),
-                                            dbc.Col(html.H6(len(goverment)), width=3)
+                                            dbc.Col(html.H6(len(goverment), id='sets_amount'), width=3)
                                         ], justify="between")
                                     ]
                                 ),
@@ -155,7 +162,7 @@ result_content = html.Div(
                                             dbc.Col(html.H6("Количество тематик", className="card-title"), width=9),
                                             dbc.Col(
                                                 html.H6(len(set([goverment[key]['subject'] for key in goverment]))
-                                                ), width=3)
+                                                , id='subjects_amount'), width=3)
                                         ], justify="between")
                                     ]
                                 ),
@@ -168,7 +175,7 @@ result_content = html.Div(
                                             dbc.Col(html.H6("Количество ведомств", className="card-title"), width=9),
                                             dbc.Col(
                                                 html.H6(len(set([goverment[key]['creator'] for key in goverment]))
-                                            ), width=3)
+                                            , id='deps_amount'), width=3)
                                         ], justify="between")
                                     ]
                                 ),
@@ -186,7 +193,7 @@ result_content = html.Div(
                                 dbc.CardBody(
                                     [
                                         html.H2("Наборы данных", className="card-title"),
-                                        dbc.Row([make_list_item('https://data.gov.ru/', goverment[key]['title']) for key in goverment], id="datasets_result")
+                                        dbc.Row([make_list_item(goverment[key]) for key in goverment], id="datasets_result")
                                     ]
                                 )
                             )
@@ -196,7 +203,47 @@ result_content = html.Div(
                     style={'margin-top': '2rem', 'margin-left': '2rem'},
                     width=7
                 ),
-                dbc.Col(html.Div(id='charts'))
+                dbc.Col(html.Div(
+                    [
+                            dbc.Row(
+                                [
+                                    dbc.Col(
+                                        dbc.Card(
+                                            dbc.CardBody(
+                                                [
+                                                    html.H2("Карта данных", className="card-title"),
+                                                    visdcc.Network(id = 'net',
+                                                         options = dict(
+                                                             layout = dict (hierarchical = 'true'),
+                                                             physics=dict(
+                                                                 repulsion=dict(springConstant=100)
+                                                             ),
+                                                             edges=dict(
+                                                                 length=250
+                                                             ),
+                                                             nodes=dict(color='#33A2B8', font = dict(color="white")),
+                                                             height= '600px', shape = 'circle', size = '80',
+                                                             scaling = dict(min = '300', max = '500',
+                                                                            label = dict(enabled = 'true', min = '14', max ='500', maxVisible = '30', drawThreshold = '5'),
+
+                                                                customScalingFunction = "function (min,max,total,value) {\
+                                                    if (max === min) {\
+                                                      return 0.5;\
+                                                    }\
+                                                    else {\
+                                                      let scale = 1 / (max - min);\
+                                                      return Math.max(0,(value - min)*scale);\
+                                                    }\
+                                                  }")))
+                                                ]
+                                            )
+                                        ), style={'margin-top': '6rem'}
+                                    )
+                                ],
+                                style={'padding-right':'1rem'}
+                            )
+                    ]
+                ,id='charts'))
             ]
         )
 
@@ -208,7 +255,6 @@ result_content = html.Div(
 layout = html.Div([result_content])
 
 toggle_output = [Output(f"collapse-{i}", "is_open") for i in range(len(open_data_cat_rus))]
-toggle_output.append(Output('charts', 'children'))
 @app.callback(
     toggle_output,
     [Input(f"group-{i}-toggle", "n_clicks") for i in range(len(open_data_cat_rus))],
@@ -218,94 +264,45 @@ def toggle_accordion(n1, n2, n3, is_open1, is_open2, is_open3):
     ctx = dash.callback_context
 
     if not ctx.triggered:
-        return False, False, False, ''
+        return False, False, False
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    charts_content = html.Div([
-    dbc.Row(
-        [
-            # dbc.Col(
-            #     # dbc.Card(
-            #     #     dbc.CardBody(
-            #     #         [
-            #     #             html.H2("Наборы данных", className="card-title"),
-            #     #             dbc.Row([make_list_item('https://data.gov.ru/', goverment[key]['title']) for key in goverment])
-            #     #         ]
-            #     #     )
-            #     # ),
-            #     width=6
-            # ),
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.H2("Карта данных", className="card-title"),
-                            visdcc.Network(id = 'net',
-                                 options = dict(
-                                     layout = dict (hierarchical = 'true'),
-                                     physics=dict(
-                                         repulsion=dict(springConstant=5)
-                                     ),
-                                     edges=dict(
-                                         length=250
-                                     ),
-                                     nodes=dict(color='#33A2B8', font = dict(color="white")),
-                                     height= '600px', shape = 'circle', size = '80',
-                                     scaling = dict(min = '300', max = '500',
-                                                    label = dict(enabled = 'true', min = '14', max ='500', maxVisible = '30', drawThreshold = '5'),
-
-                                        customScalingFunction = "function (min,max,total,value) {\
-                            if (max === min) {\
-                              return 0.5;\
-                            }\
-                            else {\
-                              let scale = 1 / (max - min);\
-                              return Math.max(0,(value - min)*scale);\
-                            }\
-                          }")))
-                        ]
-                    )
-                ), style={'margin-top': '6rem'}
-            )
-        ],
-        style={'padding-right':'1rem'}
-    )
-    ])
 
     if button_id == "group-0-toggle" and n1:
-        return not is_open1, False, False, charts_content
+        return not is_open1, False, False
     elif button_id == "group-1-toggle" and n2:
-        return False, not is_open2, False, charts_content
+        return False, not is_open2, False
     elif button_id == "group-2-toggle" and n3:
-        return False, False, not is_open3, charts_content
-    return False, False, False, ''
+        return False, False, not is_open3
+    return False, False, False
 
 
-@app.callback(
-    Output('net', 'data'),
-    [Input(f"group-{i}-toggle", "n_clicks") for i in range(len(open_data_cat_rus))])
-def myfun(n1, n2, n3):
-    departments_set = list(set([goverment[key]['creator'] for key in goverment]))
-
-    departments_set_short = []
-    for i, dep in enumerate(departments_set):
-        tmp_list = [word[0:6] for word in departments_set[i].split()]
-        tmp_list.insert(int(len(tmp_list)/3), '\n')
-        tmp_list.insert(2*int(len(tmp_list)/3), '\n')
-        departments_set_short.append(' '.join(tmp_list))
-
-    l1 = list(range(len(departments_set)))
-    l2 = l1.copy()
-    l2.insert(0,l2.pop())
-
-    for dep in departments_set:
-        # print(dep)
-        print(goverment_df[goverment_df['creator'] == dep]['title'].values)
-    data ={'nodes':[{'id': i, 'label':item} for i, item in enumerate(departments_set_short)],
-           'edges':[{'id':f"{i}-{j}", 'from': i, 'to': j} for i, j in zip(l1,l2)]
-           }
-    return data
+# @app.callback(
+#     Output('net', 'data'),
+#     [Input("btn_search1", "n_clicks")],
+#      State("input_search1", "value")   )
+# def myfun(n1, value):
+#     departments_set = list(set([goverment[key]['creator'] for key in goverment]))
+#
+#     departments_set_short = []
+#     for i, dep in enumerate(departments_set):
+#         tmp_list = [word[0:6] for word in departments_set[i].split()]
+#         tmp_list.insert(int(len(tmp_list)/3), '\n')
+#         tmp_list.insert(2*int(len(tmp_list)/3), '\n')
+#         departments_set_short.append(' '.join(tmp_list))
+#
+#     l1 = list(range(len(departments_set)))
+#     l2 = l1.copy()
+#     l2.insert(0,l2.pop())
+#
+#     for dep in departments_set:
+#         # print(dep)
+#         print(goverment_df[goverment_df['creator'] == dep]['title'].values)
+#     data ={'nodes':[{'id': i, 'label':item} for i, item in enumerate(departments_set_short)],
+#            'edges':[{'id':f"{i}-{j}", 'from': i, 'to': j} for i, j in zip(l1,l2)]
+#            }
+#     return data
 
 @app.callback(
     Output("collapse_list", "is_open"),
@@ -319,7 +316,11 @@ def toggle_collapse(n, is_open):
 
 
 @app.callback(
-    Output("datasets_result", "children"),
+    [Output("datasets_result", "children"),
+     Output("sets_amount", "children"),
+     Output("subjects_amount", "children"),
+     Output("deps_amount", "children"),
+    Output("net", "data")],
     [Input("btn_search1", "n_clicks")],
     [State("input_search1", "value")],
 )
@@ -347,22 +348,37 @@ def search(btn, value):
     try:
         hits = json.loads(response.text)['hits']['hits']
     except:
-        return ''
-    # print(len(hits))
-    # return dash.no_update
-    # print([hit['_source']['title'] for hit in hits])
-    # print(hits)
-    # print(type(hits))
-    # try:
-    #     hits = hits.reverse()
-    # except TypeError:
-    #     print('hits is none')
-    #     return ''
-    # print(hits)
-    # if type(hits) == type([]):
-    res = [make_list_item('https://data.gov.ru/', hit['_source']['title']) for hit in hits]
-    print(res)
-    res.reverse()
-    return res
-    # return dash.no_update
-    # return ;
+        return '', 0, 0, 0, {'nodes':[], 'edges': []}
+
+    res = [make_list_item(hit['_source']) for hit in hits]
+    print(hits)
+    # res.reverse()
+
+    departments_set = list(set([hit['_source']['creator'] for hit in hits]))
+
+    departments_set_short = []
+    for i, dep in enumerate(departments_set):
+        tmp_list = [word[0:6] for word in departments_set[i].split()]
+        tmp_list.insert(int(len(tmp_list)/3), '\n')
+        tmp_list.insert(2*int(len(tmp_list)/3), '\n')
+        departments_set_short.append(' '.join(tmp_list))
+
+    # l1 = list(range(len(departments_set)))
+    # l2 = l1.copy()
+    # l2.insert(0,l2.pop())
+
+    # for dep in departments_set:
+        # print(dep)
+        # print(goverment_df[goverment_df['creator'] == dep]['title'].values)
+    data ={'nodes': [{'id': 0, 'label': value}] + [{'id': i+1, 'label':item} for i, item in enumerate(departments_set_short)],
+           'edges':[{'id':f"{0}-{j}", 'from': 0, 'to': j} for j in range(1, len(departments_set_short)+1)]
+           }
+
+
+
+    return res,\
+           len(hits),\
+           len(set([hit['_source']['subject'] for hit in hits])),\
+            len(set([hit['_source']['creator'] for hit in hits])), \
+           data
+

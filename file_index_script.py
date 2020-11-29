@@ -2,7 +2,7 @@ import json
 import requests
 # import http.client
 
-with open('goverment.json') as json_file:
+with open('schema_health.json') as json_file:
     # contents = json_file.read()
     # goverment = ast.literal_eval(contents)
     goverment = json.load(json_file)

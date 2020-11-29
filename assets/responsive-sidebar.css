@@ -3,6 +3,9 @@
     width: 100%;
     margin: 1rem 0rem;
 }
+p {
+    margin-bottom: 0;
+}
 
 .dropdown-toggle {
     height: 100% !important;
