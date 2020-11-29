@@ -4,6 +4,17 @@
     margin: 1rem 0rem;
 }
 
+.dropdown-toggle {
+    height: 100% !important;
+    width: 100%;
+}
+
+.btn-light{
+    text-align: left;
+    background: white !important;
+    border: 0px !important
+}
+
 .dash-graph {
     width: 100%;
 }

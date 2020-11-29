@@ -1,0 +1,58 @@
+//Добавление в индекс
+//Request
+//PUT|deleat|update http://localhost:9200/test_index/_doc/6671143248-obzory_obrashenii/_create
+{"identifier": "6671143248-obzory_obrashenii", "title": "Обзоры обращений граждан, результаты рассмотрения этих обращений", "description": "В данном наборе отражены обзоры обращений граждан, результаты рассмотрения этих обращений", "creator": "Министерство транспорта и связи Свердловской области", "created": "20160428T000000", "modified": "20160428T000000", "format": "csv", "subject": "обращения,обращения граждан", "schema": {"Месяц": "январь", "Кол-во зарегистрированных обращений": "8", "Обработанных обращений рассмотрено в срок, % ": "100", "Кол-во разъясненых обращений": "6", "Кол-во переадресованых обращений": "0", "Поступали ли обращения по фактам коррупции в Министерстве промышленности и науки Свердловской области": "не поступало"}}
+//Response
+{
+    "_index": "test_index",
+    "_type": "_doc",
+    "_id": "6671143248-obzory_obrashenii",
+    "_version": 1,
+    "result": "created",
+    "_shards": {
+        "total": 2,
+        "successful": 1,
+        "failed": 0
+    },
+    "_seq_no": 11,
+    "_primary_term": 1
+}
+===================================================
+//Поиск
+//Request
+//GET http://localhost:9200/test_index/_search
+{
+   "query": {
+    "multi_match": {
+      "query": "ТРАНСПор контроль",
+      "fuzziness": "auto",
+      "fields": [
+        "title^3",
+        "description^2",
+        "data_scheme",
+        "creator"
+      ]
+    }
+  }
+}
+//Response
+{
+    "took": 3,
+    "timed_out": false,
+    "_shards": {
+        "total": 1,
+        "successful": 1,
+        "skipped": 0,
+        "failed": 0
+    },
+    "hits": {
+        "total": {
+            "value": 10,
+            "relation": "eq"
+        },
+        "max_score": 1.0,
+        "hits": [
+        	//
+        ]
+    }
+}
